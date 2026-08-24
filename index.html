@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Levantamentos do Suporte — SmartGPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --serie: #2a78d6;
+    --serie-fill: rgba(42,120,214,0.10);
+    --entrega: #eb6834;
+    --queda: #006300;
+    --bom: #006300;
+    --critico: #d03b3b;
+    --atencao: #b26a00;
+    --tooltip-bg: #0b0b0b;
+    --tooltip-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --serie: #3987e5;
+      --serie-fill: rgba(57,135,229,0.14);
+      --entrega: #d95926;
+      --queda: #0ca30c;
+      --bom: #0ca30c;
+      --critico: #e66767;
+      --atencao: #d99a2b;
+      --tooltip-bg: #fcfcfb;
+      --tooltip-ink: #0b0b0b;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+    margin: 0;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px 72px; }
+
+  /* ---------- nav ---------- */
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--page);
+    border-bottom: 1px solid var(--grid);
+  }
+  .topo-in {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 12px 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+  .marca {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .topo nav { display: flex; gap: 18px; }
+  .topo a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .topo a:hover { color: var(--ink); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 46px 0 8px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 50px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .lead { font-size: 17.5px; color: var(--ink-2); max-width: 64ch; margin: 0; }
+  .lead strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- cabeçalho de cada levantamento ---------- */
+  .report-head { padding: 58px 0 6px; border-top: 1px solid var(--grid); margin-top: 58px; }
+  .report-head.primeiro { border-top: none; margin-top: 26px; padding-top: 26px; }
+  .titulo-relatorio {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+    margin: 54px 0 8px;
+    text-wrap: balance;
+  }
+  .h2-sub { color: var(--ink-2); max-width: 70ch; margin: 0 0 20px; font-size: 14.5px; }
+
+  /* ---------- KPIs ---------- */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 34px 0 0;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px 17px 13px;
+  }
+  .kpi .nome {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin: 0 0 6px;
+    line-height: 1.3;
+  }
+  .kpi .valor {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 1.05;
+    margin: 0;
+  }
+  .kpi .valor.verde { color: var(--queda); }
+  .kpi .sub, .kpi .rotulo { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+  .kpi .sub { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11.5px; }
+
+  .bignums {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 36px;
+    margin: 26px 0 0;
+    padding: 18px 0 0;
+    border-top: 1px solid var(--grid);
+  }
+  .bignum { font-size: 14px; color: var(--ink-2); }
+  .bignum b {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+    margin-right: 6px;
+  }
+
+  /* ---------- gráficos ---------- */
+  .legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    margin: 0 0 18px;
+  }
+  .legenda .chip { display: inline-flex; align-items: center; gap: 8px; }
+  .chip .linha-ex { width: 22px; height: 0; border-top: 2.5px solid var(--serie); border-radius: 2px; }
+  .chip .diamante-ex {
+    width: 9px; height: 9px;
+    background: var(--entrega);
+    transform: rotate(45deg);
+    border-radius: 1.5px;
+  }
+
+  .tema {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px 18px;
+    margin: 0 0 18px;
+  }
+  .tema-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 16px;
+    margin: 0 0 4px;
+  }
+  .tema h3 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    margin: 0;
+  }
+  .tema .delta {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--queda);
+    white-space: nowrap;
+  }
+  .tema .resumo { font-size: 14px; color: var(--ink-2); margin: 0 0 14px; max-width: 78ch; }
+
+  .grafico { position: relative; }
+  .grafico svg { display: block; width: 100%; height: auto; }
+  .grafico .tick, .grafico .ytick {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    fill: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .grafico .peaklabel {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    fill: var(--ink-2);
+    paint-order: stroke;
+    stroke: var(--surface);
+    stroke-width: 3px;
+  }
+
+  .entregas { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 14px 0 2px; }
+  .entrega-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    line-height: 1.35;
+  }
+  .entrega-pill .data {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--entrega);
+    white-space: nowrap;
+  }
+  .nota-parcial { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 7px 11px;
+    border-radius: 7px;
+    max-width: 260px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    z-index: 50;
+  }
+  #tooltip.on { opacity: 1; }
+  #tooltip .tt-title { font-weight: 500; }
+  @media (prefers-reduced-motion: reduce) { #tooltip { transition: none; } }
+
+  /* ---------- tabelas ---------- */
+  .tabela-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  #tabela-clientes { min-width: 900px; }
+  th, td { text-align: left; padding: 11px 15px; vertical-align: top; }
+  thead th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--grid);
+    white-space: nowrap;
+  }
+  thead th.ordenavel { cursor: pointer; user-select: none; }
+  thead th.ordenavel:hover { color: var(--ink); }
+  thead th .seta { display: inline-block; width: 1em; color: var(--serie); }
+  tbody tr + tr td { border-top: 1px solid var(--grid); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td .td-queda { color: var(--queda); font-weight: 600; white-space: nowrap; }
+  td .td-tema, .nome { font-weight: 600; color: var(--ink); }
+  td.det, .temas { color: var(--ink-2); font-size: 13.5px; }
+  .temas { max-width: 34ch; }
+  .fone { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+  .abertos { color: var(--atencao); font-weight: 600; }
+  .csat-bom { color: var(--bom); font-weight: 600; }
+  .csat-critico { color: var(--critico); font-weight: 600; }
+  .csat-n { color: var(--muted); font-size: 12px; }
+  .sem-dado { color: var(--muted); }
+
+  details.dados { margin: 18px 0 0; }
+  details.dados summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    padding: 6px 2px;
+  }
+  details.dados summary:hover { color: var(--ink); }
+  details.dados .tabela-scroll { margin-top: 10px; }
+  details.dados td, details.dados th { padding: 8px 12px; }
+
+  /* ---------- cartões ---------- */
+  .cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .cartao {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .cartao b { color: var(--ink); }
+  .cartao .titulo {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  /* ---------- método ---------- */
+  .metodo { margin: 56px 0 0; padding: 24px 0 0; border-top: 1px solid var(--grid); }
+  .metodo h2 { margin-top: 0; font-size: 19px; }
+  .metodo ol, .metodo ul { margin: 12px 0 0; padding-left: 22px; color: var(--ink-2); font-size: 14px; }
+  .metodo li { margin: 0 0 9px; max-width: 76ch; }
+  .metodo li strong, .metodo li b { color: var(--ink); font-weight: 600; }
+  .rodape {
+    margin: 40px 0 0;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  a:focus-visible, summary:focus-visible, th.ordenavel:focus-visible {
+    outline: 2px solid var(--serie);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background: #ffffff; }
+    .topo { display: none; }
+    .wrap { max-width: none; padding: 0; }
+    .tema, .tabela-scroll, .kpis, .bignums, .cartao { break-inside: avoid; }
+    h2, .h2-sub, .legenda { break-after: avoid; }
+    .report-head { break-before: page; border-top: none; }
+    .report-head.primeiro { break-before: auto; }
+    .metodo { break-inside: avoid; }
+    details.dados summary { display: none; }
+    table { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <div class="topo-in">
+    <span class="marca">SmartGPS · Levantamentos do Suporte</span>
+    <nav>
+      <a href="#evolucao">Evolução da plataforma</a>
+      <a href="#clientes">Clientes × Suporte</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Suporte × Engenharia · Jun–Ago 2026</p>
+    <h1>Levantamentos do Suporte</h1>
+    <p class="lead">Dois estudos sobre o mesmo trimestre de atendimento: <strong>o que melhorou na plataforma</strong> (reclamações em queda cruzadas com as entregas de código) e <strong>quem mais aciona o suporte</strong> (volume, temas, avaliações e tickets dos 20 maiores clientes).</p>
+  </header>
+
+  <!-- ============================================================
+       LEVANTAMENTO 1 — Evolução da plataforma
+       ============================================================ -->
+  <section id="evolucao">
+    <div class="report-head primeiro">
+      <p class="eyebrow">Levantamento 1</p>
+      <p class="titulo-relatorio">Menos chamados, mais plataforma</p>
+      <p class="lead">Cruzamos <strong>155 mil mensagens de clientes</strong> no atendimento com <strong>3.361 entregas de código</strong> no painel. Em cinco funcionalidades, as reclamações caíram de 43% a 75% em três meses — e a semana da queda coincide com a semana da entrega.</p>
+    </div>
+
+    <div class="kpis" id="kpis-evolucao"></div>
+
+    <div class="bignums">
+      <span class="bignum"><b>3.361</b>entregas de código em 90 dias</span>
+      <span class="bignum"><b>0.19 → 0.101</b>versão do painel</span>
+      <span class="bignum"><b>5 temas</b>com queda consistente de reclamações</span>
+    </div>
+
+    <h2>A queda acompanha a entrega</h2>
+    <p class="h2-sub" id="sub-graficos">Cada gráfico mostra as conversas com reclamação do tema por semana. Os losangos marcam as principais correções publicadas no painel — passe o mouse sobre a linha e sobre os losangos para os detalhes.</p>
+
+    <div class="legenda">
+      <span class="chip"><span class="linha-ex"></span> conversas com reclamação / semana</span>
+      <span class="chip"><span class="diamante-ex"></span> entrega no painel</span>
+    </div>
+
+    <div id="temas"></div>
+
+    <details class="dados">
+      <summary>Ver os dados semanais em tabela</summary>
+      <div class="tabela-scroll"><table id="tabela-semanal"></table></div>
+    </details>
+
+    <h2>Resumo por funcionalidade</h2>
+    <div class="tabela-scroll">
+      <table>
+        <thead>
+          <tr><th>Funcionalidade</th><th>Reclamações</th><th>O que foi entregue</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="td-tema">Histórico / percurso</span><br><span class="td-queda">−75%</span></td>
+            <td class="det">pico de 16/semana (início de jun) → 1–5/semana desde julho</td>
+            <td class="det">Resumo do trajeto passou a navegar 30 dias (era 5) · nova fonte de dados do histórico · conserto da timeline do veículo</td>
+          </tr>
+          <tr>
+            <td><span class="td-tema">Alertas / notificações</span><br><span class="td-queda">−70%</span></td>
+            <td class="det">pico de 18/semana (meados de jun) → 2–5/semana desde o fim de julho</td>
+            <td class="det">Limpeza de 306 mil tokens de push duplicados · reconciliação automática de tokens · diagnóstico de entrega na própria tela de alertas · regras com fuso do usuário</td>
+          </tr>
+          <tr>
+            <td><span class="td-tema">Relatórios</span><br><span class="td-queda">−67%</span></td>
+            <td class="det">pico de 21/semana (início de jun) → 2–5/semana em agosto</td>
+            <td class="det">Geração diária estabilizada · fim dos erros silenciosos · Relatório de Comandos disponível · despesas unificadas sem duplicação</td>
+          </tr>
+          <tr>
+            <td><span class="td-tema">Estado / comando de bloqueio</span><br><span class="td-queda">−50%</span></td>
+            <td class="det">platô de ~30/semana (jun–jul) → 8 e 6 nas duas últimas semanas de agosto</td>
+            <td class="det">Fim do "cadeado falso" (estado reconciliado após o comando) · confirmação pelo ACK do rastreador · proteção contra comandos repetidos</td>
+          </tr>
+          <tr>
+            <td><span class="td-tema">Aplicativo móvel</span><br><span class="td-queda">−43%</span></td>
+            <td class="det">pico de 33/semana (fim de jun) → 11–13/semana em agosto</td>
+            <td class="det">Mapa abre direto na frota · respostas de comando organizadas · correção de dezenas de telas no celular</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Outras frentes do trimestre</h2>
+    <p class="h2-sub">Além dos cinco temas medidos pelo atendimento, o período entregou:</p>
+    <div class="tabela-scroll">
+      <table>
+        <thead><tr><th>Frente</th><th>O que mudou</th><th class="num">Entregas</th></tr></thead>
+        <tbody>
+          <tr><td><span class="td-tema">Sensores</span></td><td class="det">Redesign completo das telas, inspetor e grupos de sensores</td><td class="num">~125</td></tr>
+          <tr><td><span class="td-tema">Mapa / frota</span></td><td class="det">Novo card de frota, camadas do mapa, alternância Veículos×Usuários</td><td class="num">~120</td></tr>
+          <tr><td><span class="td-tema">Perfil operador</span></td><td class="det">Permissões e visibilidade espelhando o gerente</td><td class="num">29</td></tr>
+          <tr><td><span class="td-tema">Manutenção</span></td><td class="det">Módulo novo: alertas de manutenção, severidade e resolução</td><td class="num">23</td></tr>
+          <tr><td><span class="td-tema">Cobrança</span></td><td class="det">Desbloqueio automático de inadimplente regularizado, correções de fatura</td><td class="num">19</td></tr>
+          <tr><td><span class="td-tema">Central de eventos (NOC)</span></td><td class="det">Tela de eventos, visibilidade por equipamento, eliminação de duplicados</td><td class="num">15</td></tr>
+          <tr><td><span class="td-tema">Segurança</span></td><td class="det">Controles de acesso reforçados; trocar a senha desconecta as notificações de outros aparelhos</td><td class="num">~10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="metodo">
+      <h2>Como o levantamento 1 foi feito</h2>
+      <ol>
+        <li><strong>Fonte das reclamações:</strong> mensagens enviadas por clientes ao atendimento (fev–ago/2026). Contamos conversas distintas por semana cujo texto contém padrões de reclamação específicos de cada tema (ex.: "histórico não aparece", "alerta não chega", "aparece bloqueado") — não menções genéricas ao assunto.</li>
+        <li><strong>Fonte das entregas:</strong> histórico de código do painel no período (3.361 entregas, excluindo automações), classificado por tema.</li>
+        <li><strong>Semana parcial:</strong> a última semana (24/08) tem apenas 1 dia de dados e aparece tracejada nos gráficos; os percentuais de queda comparam junho com agosto ajustado ao ritmo do mês cheio.</li>
+        <li><strong>Leitura honesta:</strong> coincidência de datas não é prova formal de causa — mas em histórico, alertas e bloqueio a inflexão da série cai na mesma semana da entrega, o melhor sinal possível com esses dados. Parte das correções vive fora do painel (motor de alertas e gateways) e não está contada nos números de entregas.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       LEVANTAMENTO 2 — Clientes × Suporte
+       ============================================================ -->
+  <section id="clientes">
+    <div class="report-head">
+      <p class="eyebrow">Levantamento 2</p>
+      <p class="titulo-relatorio">Clientes que mais acionam o suporte</p>
+      <p class="lead">Os <strong>20 contatos mais frequentes</strong> concentram <strong>20% das conversas</strong> e <strong>33% dos tickets</strong> do período — cruzamento de volume de chamados, temas, avaliações (CSAT) e tickets de cada um.</p>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><p class="valor">9.531</p><p class="rotulo">conversas no período (top 20 = 1.875)</p></div>
+      <div class="kpi"><p class="valor">282</p><p class="rotulo">tickets desde 10/06 (top 20 = 93)</p></div>
+      <div class="kpi"><p class="valor">3,89</p><p class="rotulo">CSAT médio geral · 864 respostas</p></div>
+      <div class="kpi"><p class="valor">78%</p><p class="rotulo">dos tickets concluídos (220 de 282)</p></div>
+    </div>
+
+    <h2>Top 20 por volume de conversas</h2>
+    <p class="h2-sub">Clique nos títulos de coluna numéricos para reordenar. Tickets no formato total (concluídos / em aberto); CSAT no formato média × nº de respostas.</p>
+    <div class="tabela-scroll">
+      <table id="tabela-clientes">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th class="num ordenavel" data-col="conversas" tabindex="0">Conversas<span class="seta"></span></th>
+            <th class="num ordenavel" data-col="tickets" tabindex="0">Tickets<span class="seta"></span></th>
+            <th class="num ordenavel" data-col="abertos" tabindex="0">Em aberto<span class="seta"></span></th>
+            <th>Temas principais</th>
+            <th class="num ordenavel" data-col="csat" tabindex="0">CSAT<span class="seta"></span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h2>Leituras</h2>
+    <div class="cartoes">
+      <div class="cartao"><p class="titulo">⚠️ Caso crítico: Otton JR &amp; Vict</p>2º maior volume (140 conversas) com o pior CSAT da lista (1,71) — as cinco notas 1 concentram-se de 03 a 12/06, durante a crise de instabilidade/alertas de junho, já corrigida. Candidato a contato proativo de recuperação.</div>
+      <div class="cartao"><p class="titulo">🎫 Maior gerador de tickets: GPSRS</p>Maior volume de conversas (166) e de tickets (17). Perfil de demanda variado (alerta, personalização, cobrança, tag) — cliente para canal dedicado.</div>
+      <div class="cartao"><p class="titulo">⏳ Backlog ativo: Trace Tec</p>4 dos 8 tickets em aberto — o maior backlog da lista. Temas: relatório, alerta e equipamento sem comunicação.</div>
+      <div class="cartao"><p class="titulo">📡 bytracker: problema físico recorrente</p>CSAT 1,33 e chamados quase só de localização errada — padrão típico de antena/instalação, não de plataforma. Candidato a visita técnica.</div>
+      <div class="cartao"><p class="titulo">📷 Temas em alta sem escalonamento</p>Nobre (tag, 26 conversas rotuladas) e New Work Center (câmeras + iButton, CSAT 2,00) têm zero tickets — a demanda recorrente não está virando escalonamento formal.</div>
+      <div class="cartao"><p class="titulo">⭐ Volume alto ≠ insatisfação</p>Lav &amp; Sec (123 conversas, CSAT 4,88 em 48 respostas) e Marcos (5,00 em 27) mostram que cliente frequente e bem atendido avalia bem — e muito.</div>
+    </div>
+
+    <div class="metodo">
+      <h2>Como o levantamento 2 foi feito</h2>
+      <ul>
+        <li><b>Conversas:</b> todas as conversas abertas no atendimento de 01/06 a 24/08/2026, por contato (inclui fora de expediente).</li>
+        <li><b>Temas:</b> rótulos aplicados pelo atendimento. A rotulagem só ficou sistemática em agosto, então os números por tema subrepresentam junho/julho — o perfil relativo se mantém.</li>
+        <li><b>Tickets:</b> sistema interno de tickets do painel, existente desde 10/06/2026; vínculo ao cliente por telefone (ticket aberto por outro número não é contado).</li>
+        <li><b>CSAT:</b> respostas de 01/06 a 24/08 (escala 1–5). Nenhuma resposta do período trouxe comentário escrito. Distribuição geral: 52% nota 5, 17% nota 4, 14% nota 3, 4% nota 2, 13% nota 1.</li>
+        <li><b>Privacidade:</b> telefones exibidos de forma mascarada.</li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="rodape">Levantamentos internos · dados de 15/05 a 24/08/2026 · gerado em 24/08/2026</p>
+</div>
+
+<div id="tooltip" role="status" aria-hidden="true"></div>
+
+<script>
+/* ================= Levantamento 1: gráficos ================= */
+(function () {
+  var SEMANAS = ["18/05","25/05","01/06","08/06","15/06","22/06","29/06","06/07","13/07","20/07","27/07","03/08","10/08","17/08","24/08"];
+  function diaDe(dd, mm) {
+    var mesDias = { 5: 0, 6: 14, 7: 44, 8: 75 };
+    return mesDias[mm] + (dd - 1) - (mm === 5 ? 17 : 0);
+  }
+  var TEMAS = [
+    {
+      nome: "Histórico / percurso",
+      queda: "−75%",
+      sub: "16/sem → 1–5/sem",
+      resumo: "Reclamações de “histórico que não aparece” praticamente desapareceram na semana seguinte às correções de meados de junho.",
+      dados: [2,3,16,11,10,6,6,1,3,5,4,3,5,0,1],
+      entregas: [
+        { d: diaDe(9,6),  data: "09/06", label: "Resumo do trajeto navega 30 dias (era 5)" },
+        { d: diaDe(12,6), data: "12/06", label: "Nova fonte de dados do histórico" },
+        { d: diaDe(17,6), data: "17/06", label: "Conserto da timeline do veículo" }
+      ]
+    },
+    {
+      nome: "Alertas / notificações",
+      queda: "−70%",
+      sub: "18/sem → 2–5/sem",
+      resumo: "O pacote de junho atacou a infraestrutura de push (tokens duplicados, reconciliação automática); agosto refinou as regras. Desde o fim de julho, o tema roda no menor nível do semestre.",
+      dados: [1,11,8,8,18,14,9,5,12,14,4,5,4,2,2],
+      entregas: [
+        { d: diaDe(13,6), data: "13/06", label: "Limpeza de 306 mil tokens de push duplicados" },
+        { d: diaDe(14,6), data: "14/06", label: "Reconciliação automática de tokens" },
+        { d: diaDe(15,6), data: "15/06", label: "Diagnóstico de entrega na tela de alertas" },
+        { d: diaDe(7,8),  data: "07/08", label: "Trocar a senha desconecta notificações antigas" },
+        { d: diaDe(12,8), data: "12/08", label: "Regras de alerta no fuso do usuário" }
+      ]
+    },
+    {
+      nome: "Relatórios",
+      queda: "−67%",
+      sub: "21/sem → 2–5/sem",
+      resumo: "Junho estabilizou a geração (cron diário, telas com erro); julho corrigiu o conteúdo (motorista, comandos, despesas).",
+      dados: [8,7,21,16,8,10,10,4,5,9,8,5,5,3,2],
+      entregas: [
+        { d: diaDe(17,6), data: "17/06", label: "Geração diária de relatórios estabilizada" },
+        { d: diaDe(21,6), data: "21/06", label: "Fim do erro ao abrir “Criar relatório”" },
+        { d: diaDe(15,7), data: "15/07", label: "Relatório de Comandos disponível" },
+        { d: diaDe(31,7), data: "31/07", label: "Despesas unificadas, sem duplicação" }
+      ]
+    },
+    {
+      nome: "Estado / comando de bloqueio",
+      queda: "−50%",
+      sub: "~30/sem → 6–8/sem",
+      resumo: "O caso mais claro: o platô de junho–julho só cede quando chega a leva de agosto contra o “cadeado falso” — e cai para o menor nível da série em duas semanas.",
+      dados: [21,8,26,36,37,36,27,15,22,30,32,19,19,8,6],
+      entregas: [
+        { d: diaDe(19,6), data: "19/06", label: "Proteção contra rajada de comandos" },
+        { d: diaDe(2,7),  data: "02/07", label: "Cadeado confirmado pelo ACK do rastreador" },
+        { d: diaDe(7,8),  data: "07/08", label: "Estado reconciliado após cada comando" },
+        { d: diaDe(13,8), data: "13/08", label: "Leitura do ACK normalizada" },
+        { d: diaDe(20,8), data: "20/08", label: "Fim do cadeado falso (memória da contradição física)" }
+      ]
+    },
+    {
+      nome: "Aplicativo móvel",
+      queda: "−43%",
+      sub: "33/sem → 11–13/sem",
+      resumo: "Queda gradual, coerente com o tipo de entrega: um fluxo contínuo de correções de usabilidade no celular ao longo do trimestre inteiro.",
+      dados: [14,13,18,28,32,24,33,19,21,18,22,23,11,13,3],
+      entregas: [
+        { d: diaDe(5,6),  data: "05/06", label: "Marcador do veículo abre direto pelo link" },
+        { d: diaDe(15,6), data: "15/06", label: "Correções de telas financeiras no app" },
+        { d: diaDe(19,6), data: "19/06", label: "Mapa abre na frota (não mais “continental”)" },
+        { d: diaDe(22,6), data: "22/06", label: "Bloqueio no celular: segure para confirmar" }
+      ]
+    }
+  ];
+
+  var tooltip = document.getElementById("tooltip");
+  function showTip(html, x, y) {
+    tooltip.innerHTML = html;
+    tooltip.classList.add("on");
+    tooltip.setAttribute("aria-hidden", "false");
+    var pad = 14;
+    var w = tooltip.offsetWidth, h = tooltip.offsetHeight;
+    var left = x + pad, top = y - h - pad;
+    if (left + w > window.innerWidth - 8) left = x - w - pad;
+    if (top < 8) top = y + pad;
+    tooltip.style.left = left + "px";
+    tooltip.style.top = top + "px";
+  }
+  function hideTip() {
+    tooltip.classList.remove("on");
+    tooltip.setAttribute("aria-hidden", "true");
+  }
+
+  var kpis = document.getElementById("kpis-evolucao");
+  TEMAS.forEach(function (t) {
+    var el = document.createElement("div");
+    el.className = "kpi";
+    el.innerHTML = '<p class="nome">' + t.nome + '</p><p class="valor verde">' + t.queda + '</p><p class="sub">' + t.sub + "</p>";
+    kpis.appendChild(el);
+  });
+
+  var NS = "http://www.w3.org/2000/svg";
+  var DIA_MAX = 14 * 7;
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var temasBox = document.getElementById("temas");
+  TEMAS.forEach(function (t, ti) {
+    var card = document.createElement("div");
+    card.className = "tema";
+    card.innerHTML = '<div class="tema-head"><h3>' + t.nome + '</h3><span class="delta">' + t.queda + " de reclamações</span></div>" +
+      '<p class="resumo">' + t.resumo + "</p>";
+
+    var W = 960, H = 240;
+    var m = { top: 26, right: 16, bottom: 30, left: 40 };
+    var iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    var ymaxData = Math.max.apply(null, t.dados);
+    var ymax = Math.ceil((ymaxData + 2) / 4) * 4;
+    function X(dia) { return m.left + (dia / DIA_MAX) * iw; }
+    function Y(v) { return m.top + ih - (v / ymax) * ih; }
+
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img",
+      "aria-label": t.nome + ": conversas com reclamação por semana, com as entregas marcadas" });
+
+    for (var g = 0; g <= ymax; g += ymax / 4) {
+      svg.appendChild(el("line", { x1: m.left, x2: W - m.right, y1: Y(g), y2: Y(g),
+        stroke: g === 0 ? "var(--baseline)" : "var(--grid)", "stroke-width": 1 }));
+      var yt = el("text", { x: m.left - 8, y: Y(g) + 3.5, "text-anchor": "end", "class": "ytick" });
+      yt.textContent = g;
+      svg.appendChild(yt);
+    }
+    SEMANAS.forEach(function (s, i) {
+      if (i % 2 !== 0) return;
+      var tx = el("text", { x: X(i * 7), y: H - 8, "text-anchor": "middle", "class": "tick" });
+      tx.textContent = s;
+      svg.appendChild(tx);
+    });
+
+    var n = t.dados.length;
+    var pts = t.dados.map(function (v, i) { return [X(i * 7), Y(v)]; });
+    var dArea = "M" + pts[0][0] + "," + Y(0);
+    pts.forEach(function (p) { dArea += " L" + p[0] + "," + p[1]; });
+    dArea += " L" + pts[n - 1][0] + "," + Y(0) + " Z";
+    svg.appendChild(el("path", { d: dArea, fill: "var(--serie-fill)", stroke: "none" }));
+
+    var dSolid = "M" + pts[0][0] + "," + pts[0][1];
+    for (var i = 1; i < n - 1; i++) dSolid += " L" + pts[i][0] + "," + pts[i][1];
+    svg.appendChild(el("path", { d: dSolid, fill: "none", stroke: "var(--serie)",
+      "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    svg.appendChild(el("path", {
+      d: "M" + pts[n - 2][0] + "," + pts[n - 2][1] + " L" + pts[n - 1][0] + "," + pts[n - 1][1],
+      fill: "none", stroke: "var(--serie)", "stroke-width": 2.5, "stroke-dasharray": "5 5",
+      "stroke-linecap": "round" }));
+
+    var iPico = t.dados.indexOf(ymaxData);
+    var lblAnchor = iPico > n - 3 ? "end" : (iPico < 2 ? "start" : "middle");
+    var lblY = pts[iPico][1] - 10;
+    var diamantePerto = t.entregas.some(function (ev) { return Math.abs(X(ev.d) - pts[iPico][0]) < 48; });
+    if (lblY < m.top + 14 && diamantePerto) lblY = pts[iPico][1] + 20;
+    var pk = el("text", { x: pts[iPico][0], y: lblY, "text-anchor": lblAnchor, "class": "peaklabel" });
+    pk.textContent = ymaxData + " · pico";
+    svg.appendChild(pk);
+
+    t.entregas.forEach(function (ev) {
+      var x = X(ev.d);
+      svg.appendChild(el("line", { x1: x, x2: x, y1: m.top - 4, y2: Y(0),
+        stroke: "var(--entrega)", "stroke-width": 1, "stroke-dasharray": "2 4", opacity: 0.55 }));
+      var dm = el("rect", { x: x - 5, y: m.top - 9, width: 10, height: 10, rx: 1.5,
+        transform: "rotate(45 " + x + " " + (m.top - 4) + ")",
+        fill: "var(--entrega)", stroke: "var(--surface)", "stroke-width": 2, cursor: "pointer" });
+      dm.addEventListener("mousemove", function (e) {
+        showTip('<span class="tt-title">' + ev.data + "</span> · " + ev.label, e.clientX, e.clientY);
+      });
+      dm.addEventListener("mouseleave", hideTip);
+      svg.appendChild(dm);
+    });
+
+    pts.forEach(function (p, i) {
+      var parcial = i === n - 1;
+      svg.appendChild(el("circle", { cx: p[0], cy: p[1], r: 3.5,
+        fill: parcial ? "var(--surface)" : "var(--serie)",
+        stroke: "var(--serie)", "stroke-width": parcial ? 2 : 0 }));
+      var hit = el("circle", { cx: p[0], cy: p[1], r: 13, fill: "transparent", cursor: "default" });
+      hit.addEventListener("mousemove", function (e) {
+        showTip('<span class="tt-title">semana de ' + SEMANAS[i] + "</span><br>" +
+          t.dados[i] + " conversa" + (t.dados[i] === 1 ? "" : "s") + " com reclamação" +
+          (parcial ? "<br>(semana parcial — 1 dia)" : ""), e.clientX, e.clientY);
+      });
+      hit.addEventListener("mouseleave", hideTip);
+      svg.appendChild(hit);
+    });
+
+    var gwrap = document.createElement("div");
+    gwrap.className = "grafico";
+    gwrap.appendChild(svg);
+    card.appendChild(gwrap);
+
+    var pills = document.createElement("div");
+    pills.className = "entregas";
+    t.entregas.forEach(function (ev) {
+      var p = document.createElement("span");
+      p.className = "entrega-pill";
+      p.innerHTML = '<span class="data">' + ev.data + "</span>" + ev.label;
+      pills.appendChild(p);
+    });
+    card.appendChild(pills);
+
+    if (ti === 0) {
+      var np = document.createElement("p");
+      np.className = "nota-parcial";
+      np.textContent = "Ponto vazado e trecho tracejado = semana de 24/08, parcial (1 dia de dados).";
+      card.appendChild(np);
+    }
+    temasBox.appendChild(card);
+  });
+
+  var tb = document.getElementById("tabela-semanal");
+  var thead = "<thead><tr><th>Semana</th>";
+  TEMAS.forEach(function (t) { thead += '<th class="num">' + t.nome + "</th>"; });
+  thead += "</tr></thead>";
+  var tbody = "<tbody>";
+  SEMANAS.forEach(function (s, i) {
+    tbody += "<tr><td>" + s + (i === SEMANAS.length - 1 ? " *" : "") + "</td>";
+    TEMAS.forEach(function (t) { tbody += '<td class="num">' + t.dados[i] + "</td>"; });
+    tbody += "</tr>";
+  });
+  tbody += '<tr><td colspan="' + (TEMAS.length + 1) + '" style="font-size:12px;color:var(--muted)">* semana parcial (1 dia de dados)</td></tr></tbody>';
+  tb.innerHTML = thead + tbody;
+
+  window.addEventListener("beforeprint", function () {
+    document.querySelector("details.dados").setAttribute("open", "");
+  });
+})();
+
+/* ================= Levantamento 2: tabela de clientes ================= */
+(function () {
+  var DADOS = [
+    { nome: "GPSRS Rastreamento",               fone: "+55 800 ··· 5255", conversas: 166, tickets: 17, done: 15, abertos: 2, temas: "alerta · personalização · asaas · tag",                          csat: 3.00, n: 3 },
+    { nome: "Suporte Plataforma Otton JR & Vict", fone: "+55 11 ···· 6162", conversas: 140, tickets: 4,  done: 4,  abertos: 0, temas: "alerta · importação · instabilidade",                            csat: 1.71, n: 7 },
+    { nome: "Rastreadores Jundiaí",             fone: "+55 11 ···· 8380", conversas: 137, tickets: 2,  done: 2,  abertos: 0, temas: "instabilidade · alerta · localização errada · relatório",        csat: 2.00, n: 1 },
+    { nome: "Lav & Sec – Lavanderia",           fone: "+55 92 ··· 5020",  conversas: 123, tickets: 2,  done: 2,  abertos: 0, temas: "alerta · bloqueio · instabilidade",                              csat: 4.88, n: 48 },
+    { nome: "Pedro",                            fone: "+55 92 ···· 1348", conversas: 109, tickets: 7,  done: 6,  abertos: 1, temas: "alerta · instabilidade · sem comunicação",                       csat: 1.00, n: 1 },
+    { nome: "RASTECH Rastreamento SP",          fone: "+55 71 ··· 2099",  conversas: 106, tickets: 10, done: 8,  abertos: 2, temas: "alerta · instabilidade · relatório · mapa-histórico",            csat: null, n: 0 },
+    { nome: "Monitoramento Trace Tec",          fone: "+55 48 ··· 8831",  conversas: 101, tickets: 8,  done: 4,  abertos: 4, temas: "relatório · alerta · sem comunicação · comandos",                csat: 4.50, n: 14 },
+    { nome: "LinkSeg Segurança Eletrônica",     fone: "+55 22 ···· 5501", conversas: 90,  tickets: 3,  done: 3,  abertos: 0, temas: "bloqueio · sem comunicação · alerta · localização errada",       csat: 4.08, n: 13 },
+    { nome: "Conseg Rastreamento",              fone: "+55 86 ··· 5238",  conversas: 88,  tickets: 4,  done: 2,  abertos: 2, temas: "alerta · personalização · sensores",                             csat: 4.00, n: 1 },
+    { nome: "Jonathan Oliveira",                fone: "+55 11 ···· 8991", conversas: 86,  tickets: 9,  done: 9,  abertos: 0, temas: "comandos · asaas · bloqueio · contrato",                         csat: null, n: 0 },
+    { nome: "Agostinho Almeida e Silva",        fone: "+55 94 ··· 9134",  conversas: 84,  tickets: 4,  done: 4,  abertos: 0, temas: "alerta · câmeras · sem comunicação · localização errada",        csat: 3.96, n: 28 },
+    { nome: "bytracker Rastreamento",           fone: "+55 31 ··· 6232",  conversas: 75,  tickets: 6,  done: 6,  abertos: 0, temas: "localização errada · alerta · sensores",                         csat: 1.33, n: 3 },
+    { nome: "Inovatrac Rastreamento",           fone: "+55 15 ···· 7323", conversas: 75,  tickets: 0,  done: 0,  abertos: 0, temas: "plataforma nova · instabilidade · câmeras",                      csat: 3.46, n: 28 },
+    { nome: "Aliança – Central de Rastreamento", fone: "+55 31 ··· 1747", conversas: 73,  tickets: 1,  done: 1,  abertos: 0, temas: "tag · alerta · instabilidade",                                   csat: null, n: 0 },
+    { nome: "litoralsafe Rastreadores",         fone: "+55 44 ··· 4144",  conversas: 71,  tickets: 3,  done: 3,  abertos: 0, temas: "instabilidade · comandos · sem comunicação · tag",               csat: 4.07, n: 14 },
+    { nome: "Nobre Proteção Veicular",          fone: "+55 31 ··· 6114",  conversas: 71,  tickets: 0,  done: 0,  abertos: 0, temas: "tag (dominante) · alerta",                                       csat: null, n: 0 },
+    { nome: "Alô Rastreador Veicular",          fone: "+55 69 ··· 3535",  conversas: 71,  tickets: 5,  done: 5,  abertos: 0, temas: "bloqueio · instabilidade · alerta",                              csat: 4.09, n: 11 },
+    { nome: "Aline Luiza – SELF",               fone: "+55 27 ···· 3679", conversas: 70,  tickets: 4,  done: 2,  abertos: 2, temas: "app-técnico · alerta · login-cadastro · tag",                    csat: null, n: 0 },
+    { nome: "New Work Center",                  fone: "+55 67 ···· 7844", conversas: 70,  tickets: 0,  done: 0,  abertos: 0, temas: "câmeras · ibutton-rfid · plataforma nova",                       csat: 2.00, n: 4 },
+    { nome: "Marcos",                           fone: "+55 21 ···· 6007", conversas: 69,  tickets: 4,  done: 2,  abertos: 2, temas: "alerta · instabilidade",                                         csat: 5.00, n: 27 }
+  ];
+
+  var colAtual = "conversas", desc = true;
+  var tbody = document.querySelector("#tabela-clientes tbody");
+
+  function csatCell(d) {
+    if (d.csat === null) return '<span class="sem-dado">sem respostas</span>';
+    var cls = d.csat >= 4 ? "csat-bom" : (d.csat <= 2.5 ? "csat-critico" : "");
+    return '<span class="' + cls + '">' + d.csat.toFixed(2).replace(".", ",") + "</span> " +
+           '<span class="csat-n">× ' + d.n + "</span>";
+  }
+
+  function render() {
+    var linhas = DADOS.slice().sort(function (a, b) {
+      var va = colAtual === "csat" ? (a.csat === null ? -1 : a.csat) : a[colAtual];
+      var vb = colAtual === "csat" ? (b.csat === null ? -1 : b.csat) : b[colAtual];
+      return desc ? vb - va : va - vb;
+    });
+    tbody.innerHTML = linhas.map(function (d, i) {
+      var tk = d.tickets === 0 ? '<span class="sem-dado">0</span>'
+        : d.tickets + ' <span class="csat-n">(' + d.done + "/" + d.abertos + ")</span>";
+      var ab = d.abertos > 0 ? '<span class="abertos">' + d.abertos + "</span>" : '<span class="sem-dado">0</span>';
+      return "<tr><td class=\"num\">" + (i + 1) + "</td>" +
+        '<td><span class="nome">' + d.nome + '</span><br><span class="fone">' + d.fone + "</span></td>" +
+        '<td class="num">' + d.conversas + "</td>" +
+        '<td class="num">' + tk + "</td>" +
+        '<td class="num">' + ab + "</td>" +
+        '<td class="temas">' + d.temas + "</td>" +
+        '<td class="num">' + csatCell(d) + "</td></tr>";
+    }).join("");
+    document.querySelectorAll("#tabela-clientes th.ordenavel").forEach(function (th) {
+      th.querySelector(".seta").textContent = th.dataset.col === colAtual ? (desc ? " ↓" : " ↑") : "";
+    });
+  }
+
+  document.querySelectorAll("#tabela-clientes th.ordenavel").forEach(function (th) {
+    function alternar() {
+      if (colAtual === th.dataset.col) { desc = !desc; }
+      else { colAtual = th.dataset.col; desc = true; }
+      render();
+    }
+    th.addEventListener("click", alternar);
+    th.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); }
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
