@@ -83,14 +83,27 @@
     font-size: 15px;
     letter-spacing: -0.01em;
   }
-  .topo nav { display: flex; gap: 18px; }
-  .topo a {
+  .topo nav { display: flex; gap: 4px; }
+  .aba {
+    appearance: none;
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
     color: var(--ink-2);
-    text-decoration: none;
+    font-family: inherit;
     font-size: 14px;
     font-weight: 500;
+    padding: 8px 12px 10px;
+    cursor: pointer;
+    line-height: 1.2;
   }
-  .topo a:hover { color: var(--ink); }
+  .aba:hover { color: var(--ink); }
+  .aba[aria-selected="true"] {
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom-color: var(--serie);
+  }
+  .aba:focus-visible { outline: 2px solid var(--serie); outline-offset: -2px; border-radius: 6px; }
 
   /* ---------- hero ---------- */
   .hero { padding: 46px 0 8px; }
@@ -115,8 +128,7 @@
   .lead strong { color: var(--ink); font-weight: 600; }
 
   /* ---------- cabeçalho de cada levantamento ---------- */
-  .report-head { padding: 58px 0 6px; border-top: 1px solid var(--grid); margin-top: 58px; }
-  .report-head.primeiro { border-top: none; margin-top: 26px; padding-top: 26px; }
+  .report-head { padding: 26px 0 6px; margin-top: 26px; }
   .titulo-relatorio {
     font-family: "Archivo", sans-serif;
     font-weight: 800;
@@ -399,9 +411,9 @@
 <div class="topo">
   <div class="topo-in">
     <span class="marca">SmartGPS · Levantamentos do Suporte</span>
-    <nav>
-      <a href="#evolucao">Evolução da plataforma</a>
-      <a href="#clientes">Clientes × Suporte</a>
+    <nav role="tablist" aria-label="Levantamentos">
+      <button class="aba" role="tab" id="aba-evolucao" aria-controls="evolucao" aria-selected="true">Evolução da plataforma</button>
+      <button class="aba" role="tab" id="aba-clientes" aria-controls="clientes" aria-selected="false">Clientes × Suporte</button>
     </nav>
   </div>
 </div>
@@ -417,7 +429,7 @@
   <!-- ============================================================
        LEVANTAMENTO 1 — Evolução da plataforma
        ============================================================ -->
-  <section id="evolucao">
+  <section id="evolucao" role="tabpanel" aria-labelledby="aba-evolucao">
     <div class="report-head primeiro">
       <p class="eyebrow">Levantamento 1</p>
       <p class="titulo-relatorio">Menos chamados, mais plataforma</p>
@@ -514,7 +526,7 @@
   <!-- ============================================================
        LEVANTAMENTO 2 — Clientes × Suporte
        ============================================================ -->
-  <section id="clientes">
+  <section id="clientes" role="tabpanel" aria-labelledby="aba-clientes">
     <div class="report-head">
       <p class="eyebrow">Levantamento 2</p>
       <p class="titulo-relatorio">Clientes que mais acionam o suporte</p>
@@ -884,6 +896,58 @@
   });
 
   render();
+})();
+
+/* ================= Abas ================= */
+(function () {
+  var abas = {
+    evolucao: document.getElementById("aba-evolucao"),
+    clientes: document.getElementById("aba-clientes")
+  };
+  var paineis = {
+    evolucao: document.getElementById("evolucao"),
+    clientes: document.getElementById("clientes")
+  };
+  var ativo = "evolucao";
+
+  function mostrar(id, focar) {
+    ativo = id;
+    Object.keys(paineis).forEach(function (k) {
+      var on = k === id;
+      paineis[k].hidden = !on;
+      abas[k].setAttribute("aria-selected", on ? "true" : "false");
+      abas[k].tabIndex = on ? 0 : -1;
+    });
+    if (history.replaceState) history.replaceState(null, "", "#" + id);
+    if (focar) abas[id].focus();
+  }
+
+  Object.keys(abas).forEach(function (k) {
+    abas[k].addEventListener("click", function () {
+      mostrar(k);
+      window.scrollTo(0, 0);
+    });
+    abas[k].addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        mostrar(k === "evolucao" ? "clientes" : "evolucao", true);
+      }
+    });
+  });
+
+  window.addEventListener("hashchange", function () {
+    var h = location.hash.replace("#", "");
+    if (paineis[h] && h !== ativo) { mostrar(h); window.scrollTo(0, 0); }
+  });
+
+  // impressao: mostra os dois levantamentos em sequencia
+  window.addEventListener("beforeprint", function () {
+    Object.keys(paineis).forEach(function (k) { paineis[k].hidden = false; });
+  });
+  window.addEventListener("afterprint", function () { mostrar(ativo); });
+
+  var inicial = location.hash.replace("#", "");
+  mostrar(paineis[inicial] ? inicial : "evolucao");
 })();
 </script>
 </body>
